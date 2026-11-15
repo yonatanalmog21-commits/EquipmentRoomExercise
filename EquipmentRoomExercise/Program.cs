@@ -4,65 +4,99 @@ using System;
 //Todo: צרו מחלקת חריגים המטפלת במקרים בהם אין מספיק מחשבים זמינים להשאלה.
 //שם המחלקה צריך להיות EquipmentUnavailableException.
 
-
-
-class EquipmentRoom
+public class EquipmentUnavailableException : Exception
 {
-    private int availableComputers;
+    public int RequestedAmount { get; set; }
+    public int MissingAmount { get; set; }
 
-    public int AvailableComputers
+    public EquipmentUnavailableException(int requestedAmount, int missingAmount)
+        : base($"Not enough computers available to borrow. Requested: {requestedAmount}, Missing: {missingAmount}")
     {
-        get
-        {
-            return availableComputers;
-        }
-        set
-        {
-            // TODO: יש לבדוק שמספר המחשבים אינו שלילי.
-            // אם כן, יש לזרוק חריגה מתאימה.
-            availableComputers = value;
-        }
+        RequestedAmount = requestedAmount;
+        MissingAmount = missingAmount;
     }
 
-    public EquipmentRoom(int amount)
-    {
-        AvailableComputers = amount;
-    }
 
-    public void Borrow(int amount)
+
+    class EquipmentRoom
     {
-       
+        private int availableComputers;
+
+        public int AvailableComputers
+        {
+            get
+            {
+                return availableComputers;
+            }
+            set
+            {
+                if (value < 0)
+                {
+                    throw new ArgumentException("Available computers cannot be negative.");
+                }
+                availableComputers = value;
+            }
+        }
+
+        public EquipmentRoom(int amount)
+        {
+            AvailableComputers = amount;
+        }
+
+        public void Borrow(int amount)
+        {
+
             // TODO: יש לזרוק חריגה מתאימה כאשר אין מספיק מחשבים זמינים.
-        
+            if (availableComputers < amount)
+            {
+                throw new InvalidOperationException("Not enough computers available to borrow.");
+            }
 
 
 
-        AvailableComputers -= amount;
-        Console.WriteLine($"Borrowed successfully {amount} computers.");
+
+            AvailableComputers -= amount;
+            Console.WriteLine($"Borrowed successfully {amount} computers.");
+        }
     }
-}
 
-class Program
-{
-    static void Main(string[] args)
+    class Program
     {
-        int initialComputers = 10;
+        static void Main(string[] args)
+        {
+            int initialComputers = 10;
 
-        EquipmentRoom room = new EquipmentRoom(initialComputers);
+            EquipmentRoom room = new EquipmentRoom(initialComputers);
 
-        // יצירת חדר מחשבים עם מספר מחשבים שלילי:
-        // לאחר מימוש הבדיקה ב-set, יש לוודא שמצב כזה מטופל כראוי.
-        // TODO: יש להוסיף try-catch מתאימים סביב הקריאות שעלולות לזרוק חריגה.
-       // int negativeComputers = -5;
-       // EquipmentRoom invalidRoom = new EquipmentRoom(negativeComputers);
+            // יצירת חדר מחשבים עם מספר מחשבים שלילי:
+            try
+            {
+                EquipmentRoom invalidRoom = new EquipmentRoom(-5);
+                room.Borrow(4);
+                Console.WriteLine("continue on...");
+
+                room.Borrow(8);
+                invalidRoom.Borrow(4);
+            }
+            catch (EquipmentUnavailableException ex)
+            {
+                Console.WriteLine($"Error creating room: {ex.Message}");
+            }
+
+            catch (ArgumentOutOfRangeException ex)
+            {
+                Console.WriteLine($"Error creating room: {ex.Message}");
+            }
+            // לאחר מימוש הבדיקה ב-set, יש לוודא שמצב כזה מטופל כראוי.
+            // TODO: יש להוסיף try-catch מתאימים סביב הקריאות שעלולות לזרוק חריגה.
+            // int negativeComputers = -5;
+            // EquipmentRoom invalidRoom = new EquipmentRoom(negativeComputers);
 
 
-        room.Borrow(4);
-        Console.WriteLine("continue on...");
-        
-            room.Borrow(8);
-        
 
-        Console.WriteLine("availble computers " + room.AvailableComputers);
+
+
+            Console.WriteLine("Availble computers " + room.AvailableComputers);
+        }
     }
 }
